@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Crypto Dashboard — Names & Details</title>
 
+  <!-- Tell Tailwind to use class-based dark mode -->
+  <script>
+    window.tailwind = window.tailwind || {};
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {}
+      }
+    }
+  </script>
+
   <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
@@ -111,7 +122,7 @@
         </div>
 
         <div class="text-sm text-gray-500 dark:text-gray-400">
-          Live data from Binance. Click outside or Close to dismiss.
+          Live data from Binance. Click outside or Close to dismiss.ok
         </div>
       </div>
     </aside>
