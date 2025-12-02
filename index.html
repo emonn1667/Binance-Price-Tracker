@@ -3,85 +3,56 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Crypto Dashboard — Live Prices</title>
+  <title>Crypto Dashboard — Names & Details</title>
 
   <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <style>
-    /* small extra styles for animations not in Tailwind */
-    .price-flash {
-      transition: transform 160ms ease, opacity 160ms ease;
-    }
-    .flash-up { animation: flashUp 700ms ease; }
-    .flash-down { animation: flashDown 700ms ease; }
-    @keyframes flashUp {
-      0% { transform: scale(1.02); opacity: 0.9; }
-      40% { transform: scale(1.06); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-    @keyframes flashDown {
-      0% { transform: scale(1.02); opacity: 0.9; }
-      40% { transform: scale(0.98); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* slide panel blur */
-    .backdrop-blur-panel {
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-    }
-
-    /* simple card style in case Tailwind didn't load for some reason */
-    .price-card {
-      display: block;
-      padding: 1rem;
-      border-radius: 0.75rem;
-      background: white;
-      color: inherit;
-    }
-
-    /* Error banner style */
-    #errorBanner {
-      display: none;
-    }
+    /* tiny extras */
+    .slide-in { transform: translateX(0); }
+    .slide-out { transform: translateX(100%); }
+    .backdrop-blur-panel { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+    /* make list items keyboard-focusable nicely */
+    .coin-btn:focus { outline: 3px solid rgba(59,130,246,0.25); }
+    /* error banner hidden by default */
+    #errorBanner { display: none; }
   </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors">
+<body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors">
   <div class="max-w-6xl mx-auto p-6">
+
     <!-- Header -->
-    <div class="flex items-center justify-between gap-4 mb-6">
-      <div>
+    <div class="flex items-start justify-between gap-4 mb-6">
+      <div class="mr-4">
         <h1 class="text-3xl font-extrabold">Live Crypto Dashboard</h1>
-        <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">All Binance tickers, search anywhere, click a coin to view full details.</p>
+        <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">All Binance coins (names only). Click any name for full details.</p>
       </div>
 
-      <div class="flex items-center gap-3">
-        <input id="searchInput" type="text" placeholder="Search coin or symbol — e.g. BTC" 
-               class="px-4 py-2 rounded-lg shadow-sm outline-none w-72 bg-white dark:bg-gray-800 dark:text-gray-100"/>
-        <button id="themeToggle" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition">Dark</button>
+      <div class="flex items-center gap-3 ml-auto">
+        <div class="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg shadow px-2">
+          <input id="searchInput" type="text" placeholder="Search coin or symbol — e.g. BTC"
+                 class="px-3 py-2 bg-transparent outline-none w-56 dark:text-gray-100" />
+          <button id="searchBtn" class="px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition">Search</button>
+        </div>
+
+        <button id="themeToggle" class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 hover:brightness-95 transition">
+          Dark
+        </button>
       </div>
     </div>
 
-    <!-- Quick stats row -->
-    <div class="flex gap-4 mb-6 flex-wrap">
-      <div id="totalCoins" class="px-4 py-3 rounded-lg bg-white dark:bg-gray-800 shadow flex items-center gap-3">
-        <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold">₿</div>
-        <div>
-          <div class="text-sm text-gray-500 dark:text-gray-300">Tickers</div>
-          <div class="font-semibold" id="tickerCount">—</div>
-        </div>
+    <!-- Quick stats -->
+    <div class="flex gap-4 mb-4 items-center">
+      <div class="px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800 shadow">
+        <div class="text-sm text-gray-500 dark:text-gray-300">Total Coins</div>
+        <div class="font-semibold" id="tickerCount">—</div>
       </div>
-
-      <div class="px-4 py-3 rounded-lg bg-white dark:bg-gray-800 shadow">
+      <div class="px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800 shadow">
         <div class="text-sm text-gray-500 dark:text-gray-300">Auto Refresh</div>
         <div class="font-semibold">5s</div>
       </div>
-
-      <div id="lastUpdateCard" class="px-4 py-3 rounded-lg bg-white dark:bg-gray-800 shadow ml-auto">
+      <div class="px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800 shadow ml-auto">
         <div class="text-sm text-gray-500 dark:text-gray-300">Last refresh</div>
         <div class="font-semibold" id="lastUpdate">—</div>
       </div>
@@ -89,51 +60,46 @@
 
     <!-- Error banner -->
     <div id="errorBanner" class="mb-4 p-3 rounded bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-300">
-      Could not fetch data from Binance. Check console for details or try again later.
+      Could not fetch data from Binance. Check console or try again later.
     </div>
 
-    <!-- Grid of coins -->
-    <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-      <!-- cards injected here -->
+    <!-- All coins list (names only) -->
+    <div id="listContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+      <!-- coin buttons will be injected here -->
     </div>
   </div>
 
   <!-- Slide Panel (right) -->
   <div id="overlay" class="fixed inset-0 hidden items-end justify-end z-40">
-    <div id="backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-panel" style="opacity:0" ></div>
+    <div id="backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-panel" style="opacity:0"></div>
 
-    <aside id="slidePanel" class="relative bg-white dark:bg-gray-900 w-full sm:w-96 lg:w-[480px] h-full transform translate-x-full transition-transform shadow-2xl">
+    <aside id="slidePanel" class="relative bg-white dark:bg-gray-900 w-full sm:w-96 lg:w-[480px] h-full transform translate-x-full transition-transform duration-300 ease-in-out shadow-2xl">
       <div class="p-4 border-b dark:border-gray-800 flex items-center justify-between">
         <div>
-          <div id="panelTitle" class="text-lg font-bold">BTC/USDT</div>
-          <div id="panelSubtitle" class="text-sm text-gray-500 dark:text-gray-400">Realtime details</div>
+          <div id="panelTitle" class="text-lg font-bold">COIN</div>
+          <div id="panelSubtitle" class="text-sm text-gray-500 dark:text-gray-400">Symbol • Details</div>
         </div>
         <button id="closePanel" class="px-3 py-1 rounded bg-gray-200 dark:bg-gray-800">Close</button>
       </div>
 
-      <div class="p-4 overflow-y-auto h-[calc(100%-72px)]">
-        <div class="flex items-center justify-between gap-4 mb-4">
-          <div>
-            <div class="text-3xl font-extrabold" id="detailPrice">$0.00</div>
-            <div class="flex items-center gap-3 mt-2">
-              <div id="detailChange" class="text-sm font-semibold px-2 py-1 rounded"></div>
-              <div id="detailVolume" class="text-sm text-gray-500 dark:text-gray-400"></div>
-            </div>
-          </div>
-
-          <div class="text-right">
-            <div class="text-sm text-gray-500 dark:text-gray-400">24h High</div>
-            <div id="detailHigh" class="font-semibold">—</div>
-            <div class="text-sm text-gray-500 dark:text-gray-400 mt-3">24h Low</div>
-            <div id="detailLow" class="font-semibold">—</div>
+      <div class="p-4 overflow-y-auto h-[calc(100%-72px)] space-y-4">
+        <div>
+          <div class="text-3xl font-extrabold" id="detailPrice">$0.00</div>
+          <div class="flex items-center gap-3 mt-2">
+            <div id="detailChange" class="text-sm font-semibold px-2 py-1 rounded"></div>
+            <div id="detailVolume" class="text-sm text-gray-500 dark:text-gray-400"></div>
           </div>
         </div>
 
-        <div class="mb-5">
-          <canvas id="miniChart" class="w-full h-48 bg-transparent"></canvas>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3 mb-6">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-3 rounded bg-gray-50 dark:bg-gray-800">
+            <div class="text-xs text-gray-500 dark:text-gray-400">24h High</div>
+            <div id="detailHigh" class="font-semibold mt-1">—</div>
+          </div>
+          <div class="p-3 rounded bg-gray-50 dark:bg-gray-800">
+            <div class="text-xs text-gray-500 dark:text-gray-400">24h Low</div>
+            <div id="detailLow" class="font-semibold mt-1">—</div>
+          </div>
           <div class="p-3 rounded bg-gray-50 dark:bg-gray-800">
             <div class="text-xs text-gray-500 dark:text-gray-400">Open Price</div>
             <div id="detailOpen" class="font-semibold mt-1">—</div>
@@ -142,24 +108,15 @@
             <div class="text-xs text-gray-500 dark:text-gray-400">Quote Volume (24h)</div>
             <div id="detailQV" class="font-semibold mt-1">—</div>
           </div>
-          <div class="p-3 rounded bg-gray-50 dark:bg-gray-800">
-            <div class="text-xs text-gray-500 dark:text-gray-400">Volume (24h)</div>
-            <div id="detailVol" class="font-semibold mt-1">—</div>
-          </div>
-          <div class="p-3 rounded bg-gray-50 dark:bg-gray-800">
-            <div class="text-xs text-gray-500 dark:text-gray-400">Last Updated</div>
-            <div id="detailUpdated" class="font-semibold mt-1">—</div>
-          </div>
         </div>
 
         <div class="text-sm text-gray-500 dark:text-gray-400">
-          Data from Binance API. Click outside or "Close" to dismiss.
+          Live data from Binance. Click outside or Close to dismiss.
         </div>
       </div>
     </aside>
   </div>
 
-  <!-- Script -->
   <script src="script.js"></script>
 </body>
 </html>
